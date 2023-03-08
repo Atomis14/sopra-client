@@ -20,7 +20,7 @@ const Edit = () => {
       try {
         const response = await api.get('/users/' + id);
         // check if is current logged in user
-        if(response.data.id != localStorage.getItem('uid')) {
+        if(response.data.id !== parseInt(localStorage.getItem('uid'))) {
           alert("Cannot enter edit page for other user.");
           history.push('/game/dashboard');
         }
