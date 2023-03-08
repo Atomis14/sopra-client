@@ -1,87 +1,60 @@
 import React, {useState} from 'react';
-import {api, handleError} from 'helpers/api';
+import {api} from 'helpers/api';
 import User from 'models/User';
-import {useHistory} from 'react-router-dom';
+import {Link, useHistory} from 'react-router-dom';
 import {Button} from 'components/ui/Button';
 import 'styles/views/Login.scss';
 import BaseContainer from "components/ui/BaseContainer";
-import PropTypes from "prop-types";
-
-/*
-It is possible to add multiple components inside a single file,
-however be sure not to clutter your files with an endless amount!
-As a rule of thumb, use one file per component and only add small,
-specific components that belong to the main one in the same file.
- */
-const FormField = props => {
-  return (
-    <div className="login field">
-      <label className="login label">
-        {props.label}
-      </label>
-      <input
-        className="login input"
-        placeholder="enter here.."
-        value={props.value}
-        onChange={e => props.onChange(e.target.value)}
-      />
-    </div>
-  );
-};
-
-FormField.propTypes = {
-  label: PropTypes.string,
-  value: PropTypes.string,
-  onChange: PropTypes.func
-};
+import FormField from 'components/ui/FormField';
 
 const Login = props => {
   const history = useHistory();
-  const [name, setName] = useState(null);
-  const [username, setUsername] = useState(null);
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
 
-  const doLogin = async () => {
+  const doLogin = async (e) => {
+    e.preventDefault();
     try {
-      const requestBody = JSON.stringify({username, name});
-      const response = await api.post('/users', requestBody);
-
+      const requestBody = JSON.stringify({username, password});
+      const response = await api.post('/login', requestBody);
       // Get the returned user and update a new object.
       const user = new User(response.data);
-
-      // Store the token into the local storage.
       localStorage.setItem('token', user.token);
-
-      // Login successfully worked --> navigate to the route /game in the GameRouter
+      localStorage.setItem('uid', user.id);
       history.push(`/game`);
     } catch (error) {
-      alert(`Something went wrong during the login: \n${handleError(error)}`);
+      //alert(`Something went wrong during the login: \n${handleError(error)}`);
+      alert(error.response.data?.message || "Login failed.")
     }
   };
 
   return (
     <BaseContainer>
       <div className="login container">
-        <div className="login form">
+        <h1>Login</h1>
+        <form className="login form" onSubmit={e => doLogin(e)}>
           <FormField
             label="Username"
             value={username}
             onChange={un => setUsername(un)}
           />
           <FormField
-            label="Name"
-            value={name}
-            onChange={n => setName(n)}
+            label="Password"
+            value={password}
+            type="password"
+            onChange={n => setPassword(n)}
           />
           <div className="login button-container">
             <Button
-              disabled={!username || !name}
+              disabled={!username || !password}
               width="100%"
-              onClick={() => doLogin()}
+              onClick={e => doLogin(e)}
             >
               Login
             </Button>
           </div>
-        </div>
+          <Link to="/register" className='login link'>Go to Registration</Link>
+        </form>
       </div>
     </BaseContainer>
   );
